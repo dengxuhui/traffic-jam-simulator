@@ -23,14 +23,16 @@
   .tm { top: 8px; right: 8px; padding: 4px 8px; font-size: .7rem }
   .cb { padding: 8px 10px; flex-wrap: wrap; gap: 8px }
   .b { padding: 6px 12px; font-size: .75rem }
-  .lg { display: none }
+  .lg { display: flex; gap: 8px }
   .s2 { 
+    display: none;
     position: relative; 
     left: auto; top: auto; 
     width: 100%; 
     max-height: none;
     margin-top: 8px
   }
+  .s2.show { display: flex }
   .s2::before { display: none }
   .p { margin-bottom: 8px }
   .ph { padding: 8px 10px }
@@ -95,6 +97,7 @@ body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--tx);
 .li{display:flex;align-items:center;gap:4px;font-size:.65rem;color:var(--tx2)}
 .ld{width:8px;height:8px;border-radius:2px}
 .s2{position:absolute;left:24px;top:24px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 170px);overflow-y:auto;width:360px;z-index:3}
+.s2.hidden{display:none}
 .s2::before{content:'';position:absolute;inset:-10px;background:rgba(6,10,16,.55);border:1px solid var(--bd);border-radius:14px;backdrop-filter:blur(8px);z-index:-1}
 .p{background:linear-gradient(180deg,rgba(13,18,25,.92),rgba(13,18,25,.75));border-radius:12px;border:1px solid var(--bd);box-shadow:0 10px 24px rgba(0,0,0,.28)}
 .ph{padding:10px 14px;background:rgba(21,27,36,.9);border-bottom:1px solid var(--bd);font-size:.8rem;font-weight:500}
@@ -142,8 +145,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 <div class="s1"><div class="cw"><canvas id="c" width="800" height="550"></canvas>
 <div class="hud"><div class="hu"><div class="hl">平均速度</div><div class="hv" id="avgS">0 km/h</div></div><div class="hu"><div class="hl">密度</div><div class="hv" id="den">0</div></div><div class="hu"><div class="hl">拥堵</div><div class="hv" id="jam">0%</div></div></div>
 <div class="tm">⏱ <span id="tm">00:00</span></div></div>
-<div class="cb"><div class="bg"><button class="b bp" id="sB">▶</button><button class="b bs" id="pB" disabled>⏸</button><button class="b br" id="rB">↺</button></div><div class="lg"><div class="li"><div class="ld" style="background:#58a6ff"></div>保守</div><div class="li"><div class="ld" style="background:#3fb950"></div>正常</div><div class="li"><div class="ld" style="background:#f85149"></div>激进</div></div></div></div>
-<div class="s2">
+<div class="cb"><div class="bg"><button class="b bp" id="sB">▶</button><button class="b bs" id="pB" disabled>⏸</button><button class="b br" id="rB">↺</button></div><div class="lg"><button class="b br" id="mB" style="padding:8px 10px">☰</button><div class="li"><div class="ld" style="background:#58a6ff"></div>保守</div><div class="li"><div class="ld" style="background:#3fb950"></div>正常</div><div class="li"><div class="ld" style="background:#f85149"></div>激进</div></div></div></div>
+<div class="s2" id="s2">
 <div class="p"><div class="ph">⚙️ 参数</div><div class="pc"><div class="cg"><div class="cl"><span>车辆数</span><span class="cv" id="ccV">20</span></div><input type="range" id="cc" min="5" max="50" value="20"></div><div class="cg"><div class="cl"><span>限速 km/h</span><span class="cv" id="slV">120</span></div><input type="range" id="sl" min="60" max="180" value="120"></div><div class="cg"><div class="cl"><span>视距</span><span class="cv" id="zsV">100%</span></div><input type="range" id="zs" min="60" max="140" value="100"></div></div></div>
 <div class="p sp" id="selP"><div class="ph">🚙 选中车辆</div><div class="pc"><div class="sg"><div class="sb"><div class="sv" id="vSpd">0</div><div class="sl">km/h</div></div><div class="sb"><div class="sv" id="vAcc">0</div><div class="sl">m/s²</div></div></div><div class="cg" style="margin-top:10px"><div class="cl"><span>期望速度</span><span class="cv" id="tsV">110</span></div><input type="range" id="ts" min="40" max="200" value="110"></div><div class="cg"><div class="cl"><span>安全车距</span><span class="cv" id="fdV">50</span></div><input type="range" id="fd" min="20" max="100" value="50"></div><div class="cl">风格</div><div class="st"><button class="stb slow" data-st="slow">🐢</button><button class="stb normal on" data-st="normal">🚗</button><button class="stb aggressive" data-st="aggressive">🏎️</button></div></div></div>
 <div class="p"><div class="ph">📊 统计</div><div class="pc"><div class="sg"><div class="sb"><div class="sv" id="tv">0</div><div class="sl">车辆</div></div><div class="sb"><div class="sv" id="fr">0</div><div class="sl">流量</div></div><div class="sb"><div class="sv" id="lc">0</div><div class="sl">变道</div></div><div class="sb"><div class="sv" id="eb">0</div><div class="sl">急刹</div></div><div class="sb"><div class="sv" id="el">0</div><div class="sl">能耗</div></div></div></div></div>
@@ -231,6 +234,7 @@ document.querySelectorAll('.stb').forEach(b=>{b.onclick=function(){if(sid){const
 document.getElementById('sB').onclick=function(){run=1;document.getElementById('sB').disabled=1;document.getElementById('pB').disabled=0};
 document.getElementById('pB').onclick=function(){run=0;document.getElementById('sB').disabled=0;document.getElementById('pB').disabled=1};
 document.getElementById('rB').onclick=function(){init();run=0;document.getElementById('sB').disabled=0;document.getElementById('pB').disabled=1;sti=0};
+document.getElementById('mB').onclick=function(){document.getElementById('s2').classList.toggle('show')};
 window.addEventListener('resize',()=>{fit()});
 fit();init();an();
 </script>
