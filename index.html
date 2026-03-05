@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车流拥堵模拟器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        label {
+            font-weight: 500;
+        }
+        input[type="range"] {
+            width: 150px;
+        }
+        button {
+            padding: 10px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        .btn-start {
+            background: linear-gradient(135deg, #00d9ff, #0099ff);
+            color: #fff;
+        }
+        .btn-stop {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: #fff;
+        }
+        .btn-reset {
+            background: linear-gradient(135deg, #ffa502, #ff7f50);
+            color: #fff;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        #canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00d9ff;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 车流拥堵模拟器</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>车辆数量:</label>
+                <input type="range" id="carCount" min="10" max="200" value="50">
+                <span id="carCountVal">50</span>
+            </div>
+            <div class="control-group">
+                <label>道路限速:</label>
+                <input type="range" id="speedLimit" min="1" max="10" value="5">
+                <span id="speedLimitVal">5</span>
+            </div>
+            <div class="control-group">
+                <label>拥堵概率:</label>
+                <input type="range" id="jamProbability" min="0" max="100" value="30">
+                <span id="jamProbabilityVal">30%</span>
+            </div>
+            <button class="btn-start" id="startBtn">开始模拟</button>
+            <button class="btn-stop" id="stopBtn" disabled>暂停</button>
+            <button class="btn-reset" id="resetBtn">重置</button>
+        </div>
+        
+        <canvas id="canvas" width="1000" height="400"></canvas>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #00ff88;"></div>
+                <span>正常行驶</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ffa502;"></div>
+                <span>减速中</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff4757;"></div>
+                <span>拥堵停止</span>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="movingCars">0</div>
+                <div class="stat-label">行驶中车辆</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stoppedCars">0</div>
+                <div class="stat-label">停止车辆</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="avgSpeed">0</div>
+                <div class="stat-label">平均速度</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="jamLevel">0%</div>
+                <div class="stat-label">拥堵指数</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 道路配置
+        const road = {
+            x: 50,
+            y: 150,
+            width: 900,
+            height: 100,
+            lanes: 3
+        };
+        
+        // 车辆类
+        class Car {
+            constructor(x, lane) {
+                this.x = x;
+                this.lane = lane;
+                this.y = road.y + (lane + 0.5) * (road.height / road.lanes);
+                this.width = 30;
+                this.height = 16;
+                this.speed = Math.random() * 2 + 1;
+                this.maxSpeed = 5;
+                this.color = '#00ff88';
+                this.stopped = false;
+                this.brakeLight = false;
+            }
+            
+            update(cars) {
+                // 查找前车
+                let frontCar = null;
+                let minDist = Infinity;
+                
+                for (let other of cars) {
+                    if (other !== this && other.lane === this.lane && other.x > this.x) {
+                        let dist = other.x - this.x - this.width;
+                        if (dist < minDist) {
+                            minDist = dist;
+                            frontCar = other;
+                        }
+                    }
+                }
+                
+                // 随机事件（突然减速/拥堵）
+                const jamProb = parseInt(document.getElementById('jamProbability').value) / 100;
+                if (Math.random() < jamProb * 0.01 && !this.stopped) {
+                    this.speed *= 0.5;
+                    this.brakeLight = true;
+                }
+                
+                // 前车距离影响
+                if (frontCar) {
+                    if (minDist < 60) {
+                        // 距离太近，减速
+                        this.speed *= 0.95;
+                        this.brakeLight = true;
+                        if (minDist < 30) {
+                            this.speed *= 0.9;
+                            this.stopped = minDist < 15;
+                        }
+                    } else if (minDist < 100) {
+                        // 保持安全距离
+                        this.speed *= 0.98;
+                    } else {
+                        // 恢复正常速度
+                        this.speed = Math.min(this.speed * 1.02, this.maxSpeed);
+                        this.brakeLight = false;
+                        this.stopped = false;
+                    }
+                } else {
+                    // 没有前车，加速
+                    this.speed = Math.min(this.speed * 1.01, this.maxSpeed);
+                    this.brakeLight = false;
+                    this.stopped = false;
+                }
+                
+                // 限速影响
+                const speedLimit = parseInt(document.getElementById('speedLimit').value);
+                this.maxSpeed = speedLimit;
+                this.speed = Math.min(this.speed, this.maxSpeed);
+                
+                // 移动
+                this.x += this.speed;
+                
+                // 循环
+                if (this.x > road.x + road.width) {
+                    this.x = road.x - this.width;
+                }
+                
+                // 更新颜色
+                if (this.stopped) {
+                    this.color = '#ff4757';
+                } else if (this.speed < this.maxSpeed * 0.5) {
+                    this.color = '#ffa502';
+                } else {
+                    this.color = '#00ff88';
+                }
+            }
+            
+            draw() {
+                // 车身
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y - this.height/2, this.width, this.height, 4);
+                ctx.fill();
+                
+                // 车窗
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(this.x + 18, this.y - this.height/2 + 2, 8, this.height - 4);
+                
+                // 刹车灯
+                if (this.brakeLight) {
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(this.x - 2, this.y - this.height/2 + 2, 2, 4);
+                    ctx.fillRect(this.x - 2, this.y + this.height/2 - 6, 2, 4);
+                }
+            }
+        }
+        
+        // 车辆数组
+        let cars = [];
+        let isRunning = false;
+        let animationId = null;
+        
+        // 初始化车辆
+        function initCars() {
+            cars = [];
+            const count = parseInt(document.getElementById('carCount').value);
+            const lanes = road.lanes;
+            
+            for (let i = 0; i < count; i++) {
+                const lane = Math.floor(Math.random() * lanes);
+                const x = road.x + Math.random() * road.width;
+                cars.push(new Car(x, lane));
+            }
+        }
+        
+        // 绘制道路
+        function drawRoad() {
+            // 路面
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(road.x, road.y, road.width, road.height);
+            
+            // 车道线
+            ctx.strokeStyle = '#fff';
+            ctx.setLineDash([20, 15]);
+            ctx.lineWidth = 2;
+            
+            for (let i = 1; i < road.lanes; i++) {
+                const y = road.y + i * (road.height / road.lanes);
+                ctx.beginPath();
+                ctx.moveTo(road.x, y);
+                ctx.lineTo(road.x + road.width, y);
+                ctx.stroke();
+            }
+            
+            ctx.setLineDash([]);
+            
+            // 路边
+            ctx.strokeStyle = '#f39c12';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(road.x, road.y);
+            ctx.lineTo(road.x + road.width, road.y);
+            ctx.moveTo(road.x, road.y + road.height);
+            ctx.lineTo(road.x + road.width, road.y + road.height);
+            ctx.stroke();
+        }
+        
+        // 更新统计
+        function updateStats() {
+            let moving = 0;
+            let stopped = 0;
+            let totalSpeed = 0;
+            
+            for (let car of cars) {
+                if (car.stopped) {
+                    stopped++;
+                } else {
+                    moving++;
+                }
+                totalSpeed += car.speed;
+            }
+            
+            const avgSpeed = cars.length > 0 ? (totalSpeed / cars.length).toFixed(1) : 0;
+            const jamLevel = cars.length > 0 ? Math.round((stopped / cars.length) * 100) : 0;
+            
+            document.getElementById('movingCars').textContent = moving;
+            document.getElementById('stoppedCars').textContent = stopped;
+            document.getElementById('avgSpeed').textContent = avgSpeed;
+            document.getElementById('jamLevel').textContent = jamLevel + '%';
+            
+            // 拥堵指数颜色
+            const jamEl = document.getElementById('jamLevel');
+            if (jamLevel > 70) {
+                jamEl.style.color = '#ff4757';
+            } else if (jamLevel > 40) {
+                jamEl.style.color = '#ffa502';
+            } else {
+                jamEl.style.color = '#00ff88';
+            }
+        }
+        
+        // 动画循环
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawRoad();
+            
+            // 更新和绘制车辆（按车道排序）
+            cars.sort((a, b) => a.lane - b.lane || a.x - b.x);
+            
+            for (let car of cars) {
+                if (isRunning) {
+                    car.update(cars);
+                }
+                car.draw();
+            }
+            
+            updateStats();
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 事件监听
+        document.getElementById('carCount').addEventListener('input', function() {
+            document.getElementById('carCountVal').textContent = this.value;
+            if (!isRunning) {
+                initCars();
+            }
+        });
+        
+        document.getElementById('speedLimit').addEventListener('input', function() {
+            document.getElementById('speedLimitVal').textContent = this.value;
+        });
+        
+        document.getElementById('jamProbability').addEventListener('input', function() {
+            document.getElementById('jamProbabilityVal').textContent = this.value + '%';
+        });
+        
+        document.getElementById('startBtn').addEventListener('click', function() {
+            isRunning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+        });
+        
+        document.getElementById('stopBtn').addEventListener('click', function() {
+            isRunning = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            initCars();
+        });
+        
+        // 启动
+        initCars();
+        animate();
+    </script>
+</body>
+</html>
