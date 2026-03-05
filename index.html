@@ -2,10 +2,63 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>微观交通流仿真系统</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .h { padding: 10px 12px }
+  .hc { flex-direction: column; gap: 8px }
+  .lt { align-items: center }
+  .sub { display: none }
+  .rt { display: none }
+  .m { padding: 8px }
+  .s1 { border-radius: 10px }
+  .cw { min-height: 50vh; height: 50vh }
+  .hud { top: 8px; left: 8px; gap: 4px }
+  .hu { min-width: 80px; padding: 6px 10px }
+  .hl { font-size: .5rem }
+  .hv { font-size: .9rem }
+  .tm { top: 8px; right: 8px; padding: 4px 8px; font-size: .7rem }
+  .cb { padding: 8px 10px; flex-wrap: wrap; gap: 8px }
+  .b { padding: 6px 12px; font-size: .75rem }
+  .lg { display: none }
+  .s2 { 
+    position: relative; 
+    left: auto; top: auto; 
+    width: 100%; 
+    max-height: none;
+    margin-top: 8px
+  }
+  .s2::before { display: none }
+  .p { margin-bottom: 8px }
+  .ph { padding: 8px 10px }
+  .pc { padding: 8px }
+  .sg { grid-template-columns: 1fr 1fr; gap: 6px }
+  .sb { padding: 8px }
+  .sv { font-size: .9rem }
+  .cg { margin-bottom: 8px }
+  input[type=range] { height: 4px }
+  input[type=range]::-webkit-slider-thumb { width: 12px; height: 12px }
+  .st { gap: 3px }
+  .stb { padding: 4px; font-size: .6rem }
+  .vs { max-height: 150px }
+  .vc { min-width: auto; padding: 6px }
+  .vi { width: 24px; height: 14px }
+  .vid { font-size: .7rem }
+  .vsp { font-size: .55rem }
+}
+@media (max-width: 480px) {
+  .m { padding: 4px }
+  .cw { min-height: 45vh; height: 45vh }
+  .hu { min-width: 70px; padding: 4px 8px }
+  .hv { font-size: .8rem }
+  .s2 { gap: 8px }
+  .p { border-radius: 8px }
+  .btn-group { width: 100%; justify-content: center }
+}
+
 :root{--bg:#060a10;--bg2:#0d1219;--bg3:#151b24;--bg4:#1b2430;--tx:#e6edf3;--tx2:#8b949e;--c1:#2f81f7;--c2:#3fb950;--c3:#f85149;--c4:#f1a933;--c5:#0ea5e9;--bd:#2b3440;--gl:rgba(255,255,255,.05)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;background-image:radial-gradient(ellipse at 20% 10%,rgba(47,129,247,.08) 0%,transparent 45%),radial-gradient(ellipse at 70% 85%,rgba(14,165,233,.06) 0%,transparent 50%),linear-gradient(180deg,rgba(10,14,20,.7),rgba(6,10,16,.9));background-attachment:fixed}
@@ -41,7 +94,7 @@ body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--tx);
 .lg{display:flex;gap:10px}
 .li{display:flex;align-items:center;gap:4px;font-size:.65rem;color:var(--tx2)}
 .ld{width:8px;height:8px;border-radius:2px}
-.s2{position:absolute;right:24px;top:24px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 170px);overflow-y:auto;width:320px;z-index:3}
+.s2{position:absolute;left:24px;top:24px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 170px);overflow-y:auto;width:360px;z-index:3}
 .s2::before{content:'';position:absolute;inset:-10px;background:rgba(6,10,16,.55);border:1px solid var(--bd);border-radius:14px;backdrop-filter:blur(8px);z-index:-1}
 .p{background:linear-gradient(180deg,rgba(13,18,25,.92),rgba(13,18,25,.75));border-radius:12px;border:1px solid var(--bd);box-shadow:0 10px 24px rgba(0,0,0,.28)}
 .ph{padding:10px 14px;background:rgba(21,27,36,.9);border-bottom:1px solid var(--bd);font-size:.8rem;font-weight:500}
@@ -58,11 +111,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .sb{background:var(--bg4);border-radius:6px;padding:10px;text-align:center}
 .sv{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:600;color:var(--c1)}
 .sl{font-size:.55rem;color:var(--tx2);margin-top:2px;text-transform:uppercase}
-.vs{max-height:180px;overflow-y:auto}
-.vs::-webkit-scrollbar{width:4px}
-.vs::-webkit-scrollbar-track{background:var(--bg4)}
-.vs::-webkit-scrollbar-thumb{background:var(--c1);border-radius:2px}
-.vc{display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:4px;background:var(--bg4);border-radius:8px;cursor:pointer;transition:all .1s;border:2px solid transparent}
+.vs{display:flex;flex-wrap:wrap;gap:6px}
+.vc{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;background:var(--bg4);border-radius:10px;cursor:pointer;transition:all .1s;border:2px solid transparent;min-width:86px}
+.vc .vif{display:flex;flex-direction:column;gap:2px}
+.vc .vid{font-size:.7rem}
+.vc .vsp{font-size:.6rem}
 .vc:hover{background:rgba(47,129,247,.08)}
 .vc.sel{border-color:var(--c1);background:rgba(47,129,247,.12)}
 .vi{width:28px;height:16px;border-radius:3px;position:relative}
@@ -94,7 +147,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 <div class="p"><div class="ph">⚙️ 参数</div><div class="pc"><div class="cg"><div class="cl"><span>车辆数</span><span class="cv" id="ccV">20</span></div><input type="range" id="cc" min="5" max="50" value="20"></div><div class="cg"><div class="cl"><span>限速 km/h</span><span class="cv" id="slV">120</span></div><input type="range" id="sl" min="60" max="180" value="120"></div><div class="cg"><div class="cl"><span>视距</span><span class="cv" id="zsV">100%</span></div><input type="range" id="zs" min="60" max="140" value="100"></div></div></div>
 <div class="p sp" id="selP"><div class="ph">🚙 选中车辆</div><div class="pc"><div class="sg"><div class="sb"><div class="sv" id="vSpd">0</div><div class="sl">km/h</div></div><div class="sb"><div class="sv" id="vAcc">0</div><div class="sl">m/s²</div></div></div><div class="cg" style="margin-top:10px"><div class="cl"><span>期望速度</span><span class="cv" id="tsV">110</span></div><input type="range" id="ts" min="40" max="200" value="110"></div><div class="cg"><div class="cl"><span>安全车距</span><span class="cv" id="fdV">50</span></div><input type="range" id="fd" min="20" max="100" value="50"></div><div class="cl">风格</div><div class="st"><button class="stb slow" data-st="slow">🐢</button><button class="stb normal on" data-st="normal">🚗</button><button class="stb aggressive" data-st="aggressive">🏎️</button></div></div></div>
 <div class="p"><div class="ph">📊 统计</div><div class="pc"><div class="sg"><div class="sb"><div class="sv" id="tv">0</div><div class="sl">车辆</div></div><div class="sb"><div class="sv" id="fr">0</div><div class="sl">流量</div></div><div class="sb"><div class="sv" id="lc">0</div><div class="sl">变道</div></div><div class="sb"><div class="sv" id="eb">0</div><div class="sl">急刹</div></div><div class="sb"><div class="sv" id="el">0</div><div class="sl">能耗</div></div></div></div></div>
-<div class="p"><div class="ph">🚗 车辆</div><div class="pc" style="padding:8px"><div class="vs" id="vl"></div></div></div>
+<div class="p"><div class="ph">🚗 车辆</div><div class="pc" style="padding:10px"><div class="vs" id="vl"></div></div></div>
 <div class="p"><div class="ph">📖 模型</div><div class="pc"><div class="inf"><p><strong>IDM</strong> 智能驾驶员模型</p><p><strong>MOBIL</strong> 变道决策</p><p style="color:var(--c4)">💡 滚动道路查看前后车</p><p style="color:var(--c4)">💡 点击控制车辆</p></div></div></div>
 </div></div>
 <script>
