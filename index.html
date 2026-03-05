@@ -1,866 +1,185 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>真实驾驶模拟器</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: #fff;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 2em;
-            background: linear-gradient(90deg, #00d9ff, #00ff88);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .main-content {
-            display: flex;
-            gap: 20px;
-        }
-        .canvas-container {
-            flex: 1;
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-        }
-        #canvas {
-            display: block;
-            background: #1a1a2e;
-        }
-        .sidebar {
-            width: 320px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .panel {
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 15px;
-        }
-        .panel h3 {
-            font-size: 1em;
-            margin-bottom: 12px;
-            color: #00d9ff;
-        }
-        .car-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .car-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px;
-            margin-bottom: 6px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .car-item:hover {
-            background: rgba(0,0,0,0.5);
-        }
-        .car-item.selected {
-            border: 2px solid #00d9ff;
-        }
-        .car-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-        }
-        .car-info {
-            flex: 1;
-            font-size: 0.85em;
-        }
-        .car-style {
-            font-size: 0.75em;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: rgba(255,255,255,0.2);
-        }
-        .style-slow { background: #3498db; }
-        .style-normal { background: #27ae60; }
-        .style-aggressive { background: #e74c3c; }
-        
-        .controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        button {
-            padding: 8px 16px;
-            font-size: 14px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-        .btn-start { background: #00d9ff; color: #000; }
-        .btn-stop { background: #ff6b6b; color: #fff; }
-        .btn-reset { background: #ffa502; color: #fff; }
-        button:hover { transform: translateY(-2px); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        
-        .slider-group {
-            margin-bottom: 12px;
-        }
-        .slider-group label {
-            display: block;
-            font-size: 0.85em;
-            margin-bottom: 5px;
-        }
-        .slider-group input[type="range"] {
-            width: 100%;
-        }
-        
-        .selected-car-panel {
-            display: none;
-        }
-        .selected-car-panel.active {
-            display: block;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .stat-item {
-            text-align: center;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-        }
-        .stat-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #00d9ff;
-        }
-        .stat-label {
-            font-size: 0.75em;
-            color: #aaa;
-        }
-        
-        .legend {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            font-size: 0.8em;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 2px;
-        }
-        
-        .driving-style-selector {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .style-btn {
-            flex: 1;
-            padding: 8px;
-            font-size: 0.8em;
-            border: 2px solid transparent;
-            border-radius: 6px;
-            cursor: pointer;
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            transition: all 0.2s;
-        }
-        .style-btn:hover { border-color: rgba(255,255,255,0.5); }
-        .style-btn.active.slow { background: #3498db; }
-        .style-btn.active.normal { background: #27ae60; }
-        .style-btn.active.aggressive { background: #e74c3c; }
-        
-        .info-panel {
-            font-size: 0.85em;
-            line-height: 1.6;
-        }
-        .info-panel p { margin-bottom: 8px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微观交通流仿真系统</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060a10;--bg2:#0d1219;--bg3:#151b24;--bg4:#1b2430;--tx:#e6edf3;--tx2:#8b949e;--c1:#2f81f7;--c2:#3fb950;--c3:#f85149;--c4:#f1a933;--c5:#0ea5e9;--bd:#2b3440;--gl:rgba(255,255,255,.05)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;background-image:radial-gradient(ellipse at 20% 10%,rgba(47,129,247,.08) 0%,transparent 45%),radial-gradient(ellipse at 70% 85%,rgba(14,165,233,.06) 0%,transparent 50%),linear-gradient(180deg,rgba(10,14,20,.7),rgba(6,10,16,.9));background-attachment:fixed}
+.h{padding:16px 24px;background:linear-gradient(180deg,rgba(12,16,22,.98),rgba(12,16,22,.6));border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:99;backdrop-filter:blur(10px)}
+.hc{max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.l{display:flex;align-items:center;gap:12px}
+.li{width:34px;height:34px;background:linear-gradient(135deg,var(--c1),var(--c2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 8px 18px rgba(0,0,0,.35)}
+.lt{display:flex;flex-direction:column;gap:2px}
+.ttl{font-size:1.2rem;font-weight:600;background:linear-gradient(90deg,var(--tx),var(--c1));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:.7rem;color:var(--tx2);letter-spacing:.6px;text-transform:uppercase}
+.rt{display:flex;align-items:center;gap:8px;font-size:.7rem;color:var(--tx2);background:rgba(6,10,16,.6);border:1px solid var(--bd);padding:6px 10px;border-radius:999px}
+.rt b{color:var(--c2);font-weight:600}
+.m{position:relative;display:block;padding:16px;max-width:1600px;margin:0 auto}
+.s1{background:var(--bg2);border-radius:16px;border:1px solid var(--bd);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.cw{position:relative;background:linear-gradient(180deg,#080c12 0%,#0d141a 50%,#080c12 100%);flex:1;min-height:calc(100vh - 140px);height:calc(100vh - 140px);overflow-y:auto}
+.cw::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 40%,rgba(0,0,0,.45) 100%)}
+#c{display:block;width:100%;height:100%}
+.hud{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:8px;z-index:3}
+.hu{background:rgba(8,12,18,.86);backdrop-filter:blur(12px);border:1px solid var(--bd);border-radius:10px;padding:8px 14px;min-width:120px;box-shadow:0 8px 18px rgba(0,0,0,.35)}
+.hl{font-size:.6rem;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px}
+.hv{font-family:'JetBrains Mono',monospace;font-size:1.15rem;font-weight:600;color:var(--c1)}
+.hv.w{color:var(--c4)}.hv.d{color:var(--c3)}
+.tm{position:absolute;top:12px;right:12px;background:rgba(8,12,18,.86);backdrop-filter:blur(12px);border:1px solid var(--bd);border-radius:10px;padding:6px 12px;font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--tx2);box-shadow:0 8px 18px rgba(0,0,0,.35);z-index:3}
+.tm span{color:var(--c2)}
+.cb{padding:12px 16px;background:linear-gradient(180deg,rgba(21,27,36,.9),rgba(14,19,26,.95));border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;z-index:3}
+.bg{display:flex;gap:8px}
+.b{padding:8px 16px;border:none;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;font-family:inherit;box-shadow:0 6px 14px rgba(0,0,0,.3)}
+.b:hover{transform:translateY(-1px)}
+.b:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.bp{background:linear-gradient(135deg,var(--c2),#238636);color:#fff}
+.bs{background:linear-gradient(135deg,var(--c4),#9e6a03);color:#fff}
+.br{background:linear-gradient(135deg,var(--c5),#6e40c9);color:#fff}
+.lg{display:flex;gap:10px}
+.li{display:flex;align-items:center;gap:4px;font-size:.65rem;color:var(--tx2)}
+.ld{width:8px;height:8px;border-radius:2px}
+.s2{position:absolute;right:24px;top:24px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 170px);overflow-y:auto;width:320px;z-index:3}
+.s2::before{content:'';position:absolute;inset:-10px;background:rgba(6,10,16,.55);border:1px solid var(--bd);border-radius:14px;backdrop-filter:blur(8px);z-index:-1}
+.p{background:linear-gradient(180deg,rgba(13,18,25,.92),rgba(13,18,25,.75));border-radius:12px;border:1px solid var(--bd);box-shadow:0 10px 24px rgba(0,0,0,.28)}
+.ph{padding:10px 14px;background:rgba(21,27,36,.9);border-bottom:1px solid var(--bd);font-size:.8rem;font-weight:500}
+.pc{padding:12px}
+.cg{margin-bottom:12px}
+.cg:last-child{margin-bottom:0}
+.cl{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:.75rem;color:var(--tx2)}
+.cv{font-family:'JetBrains Mono',monospace;color:var(--c1);font-weight:600;font-size:.8rem}
+input[type=range]{width:100%;height:5px;-webkit-appearance:none;background:var(--bg4);border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--c1);border-radius:50%;cursor:pointer}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.p .sg{grid-template-columns:repeat(5,1fr)}
+.sp .sg{grid-template-columns:1fr 1fr}
+.sb{background:var(--bg4);border-radius:6px;padding:10px;text-align:center}
+.sv{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:600;color:var(--c1)}
+.sl{font-size:.55rem;color:var(--tx2);margin-top:2px;text-transform:uppercase}
+.vs{max-height:180px;overflow-y:auto}
+.vs::-webkit-scrollbar{width:4px}
+.vs::-webkit-scrollbar-track{background:var(--bg4)}
+.vs::-webkit-scrollbar-thumb{background:var(--c1);border-radius:2px}
+.vc{display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:4px;background:var(--bg4);border-radius:8px;cursor:pointer;transition:all .1s;border:2px solid transparent}
+.vc:hover{background:rgba(47,129,247,.08)}
+.vc.sel{border-color:var(--c1);background:rgba(47,129,247,.12)}
+.vi{width:28px;height:16px;border-radius:3px;position:relative}
+.vi::after{content:'';position:absolute;top:2px;left:2px;right:2px;height:5px;background:rgba(255,255,255,.2);border-radius:2px 2px 0 0}
+.vif{flex:1}
+.vid{font-size:.8rem;font-weight:500}
+.vsp{font-size:.65rem;color:var(--tx2);font-family:'JetBrains Mono',monospace}
+.sp{display:none}
+.sp.on{display:block}
+.st{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px}
+.stb{padding:6px;border:2px solid var(--bg4);border-radius:4px;background:0 0;color:var(--tx2);cursor:pointer;transition:all .1s;font-size:.65rem;text-align:center}
+.stb:hover{border-color:var(--tx2)}
+.stb.on.slow{border-color:#58a6ff;background:rgba(88,166,255,.12);color:#58a6ff}
+.stb.on.normal{border-color:#3fb950;background:rgba(63,185,80,.12);color:#3fb950}
+.stb.on.aggressive{border-color:#f85149;background:rgba(248,81,73,.12);color:#f85149}
+.inf{font-size:.7rem;color:var(--tx2);line-height:1.5}
+.inf p{margin-bottom:4px}
+.inf strong{color:var(--tx)}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚗 真实驾驶模拟器</h1>
-        
-        <div class="main-content">
-            <div class="canvas-container">
-                <canvas id="canvas" width="600" height="700"></canvas>
-            </div>
-            
-            <div class="sidebar">
-                <div class="panel">
-                    <h3>🎮 控制面板</h3>
-                    <div class="slider-group">
-                        <label>车辆数量: <span id="carCountVal">20</span></label>
-                        <input type="range" id="carCount" min="5" max="50" value="20">
-                    </div>
-                    <div class="slider-group">
-                        <label>道路限速: <span id="speedLimitVal">120</span> km/h</label>
-                        <input type="range" id="speedLimit" min="60" max="200" value="120">
-                    </div>
-                    <div class="controls">
-                        <button class="btn-start" id="startBtn">开始</button>
-                        <button class="btn-stop" id="stopBtn" disabled>暂停</button>
-                        <button class="btn-reset" id="resetBtn">重置</button>
-                    </div>
-                </div>
-                
-                <div class="panel selected-car-panel" id="selectedPanel">
-                    <h3>🚙 选中车辆控制</h3>
-                    <div class="stats">
-                        <div class="stat-item">
-                            <div class="stat-value" id="carSpeed">0</div>
-                            <div class="stat-label">当前速度</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="carLane">1</div>
-                            <div class="stat-label">车道</div>
-                        </div>
-                    </div>
-                    <div class="slider-group" style="margin-top: 12px;">
-                        <label>目标速度: <span id="targetSpeedVal">100</span> km/h</label>
-                        <input type="range" id="targetSpeed" min="20" max="200" value="100">
-                    </div>
-                    <div class="slider-group">
-                        <label>跟车距离: <span id="followDistVal">50</span> m</label>
-                        <input type="range" id="followDist" min="20" max="100" value="50">
-                    </div>
-                    <label>驾驶风格:</label>
-                    <div class="driving-style-selector">
-                        <button class="style-btn slow" data-style="slow">🐢 保守</button>
-                        <button class="style-btn normal" data-style="normal">🚗 正常</button>
-                        <button class="style-btn aggressive" data-style="aggressive">🏎️ 激进</button>
-                    </div>
-                </div>
-                
-                <div class="panel">
-                    <h3>📊 全局统计</h3>
-                    <div class="stats">
-                        <div class="stat-item">
-                            <div class="stat-value" id="avgSpeed">0</div>
-                            <div class="stat-label">平均速度</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="jamLevel">0%</div>
-                            <div class="stat-label">拥堵指数</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="laneChanges">0</div>
-                            <div class="stat-label">变道次数</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="overtakes">0</div>
-                            <div class="stat-label">超车次数</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="panel">
-                    <h3>🚗 车辆列表</h3>
-                    <div class="legend">
-                        <div class="legend-item"><div class="legend-color" style="background: #3498db;"></div>保守</div>
-                        <div class="legend-item"><div class="legend-color" style="background: #27ae60;"></div>正常</div>
-                        <div class="legend-item"><div class="legend-color" style="background: #e74c3c;"></div>激进</div>
-                    </div>
-                    <div class="car-list" id="carList"></div>
-                </div>
-                
-                <div class="panel">
-                    <h3>ℹ️ 说明</h3>
-                    <div class="info-panel">
-                        <p>• <strong>保守司机</strong>: 保持远跟车距离，低速行驶，很少变道</p>
-                        <p>• <strong>正常司机</strong>: 适中跟车距离，适度变道</p>
-                        <p>• <strong>激进司机</strong>: 近距离跟车，高速行驶，频繁变道超车</p>
-                        <p>• 点击左侧车辆可单独控制</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // 驾驶风格配置
-        const DRIVING_STYLES = {
-            slow: {
-                name: '保守',
-                color: '#3498db',
-                minFollowDist: 60,
-                maxFollowDist: 100,
-                maxSpeed: 80,
-                laneChangeProb: 0.002,
-                overtaking: false
-            },
-            normal: {
-                name: '正常',
-                color: '#27ae60',
-                minFollowDist: 40,
-                maxFollowDist: 70,
-                maxSpeed: 120,
-                laneChangeProb: 0.005,
-                overtaking: true
-            },
-            aggressive: {
-                name: '激进',
-                color: '#e74c3c',
-                minFollowDist: 25,
-                maxFollowDist: 45,
-                maxSpeed: 180,
-                laneChangeProb: 0.015,
-                overtaking: true
-            }
-        };
-
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-
-        // 道路配置 - 垂直方向
-        const road = {
-            x: 100,
-            y: 50,
-            width: 400,
-            height: 600,
-            lanes: 4,
-            laneHeight: 0
-        };
-        road.laneHeight = road.height / road.lanes;
-
-        // 车辆类
-        class Car {
-            constructor(id, y, lane, style = 'normal') {
-                this.id = id;
-                this.x = road.x + 30 + Math.random() * (road.width - 60);
-                this.y = y;
-                this.lane = lane;
-                this.width = 24;
-                this.height = 40;
-                
-                // 驾驶偏好
-                this.style = style;
-                this.styleConfig = DRIVING_STYLES[style];
-                
-                // 速度相关 (pixels/frame，转换为显示用)
-                this.speed = 0;
-                this.targetSpeed = this.styleConfig.maxSpeed * 0.7 + Math.random() * this.styleConfig.maxSpeed * 0.3;
-                this.followDist = this.styleConfig.minFollowDist + Math.random() * (this.styleConfig.maxFollowDist - this.styleConfig.minFollowDist);
-                
-                // 状态
-                this.accelerating = false;
-                this.braking = false;
-                this.changingLane = false;
-                this.laneChangeProgress = 0;
-                this.targetLane = lane;
-                this.laneChangeSpeed = 0.03;
-                
-                // 统计
-                this.laneChanges = 0;
-                this.overtakes = 0;
-                this.totalDistance = 0;
-                
-                // AI决策
-                this.reactionTime = 0.3 + Math.random() * 0.5; // 反应时间(秒)
-                this.lastDecision = 0;
-            }
-            
-            // 获取目标车道的位置
-            getLaneX(lane) {
-                return road.x + (lane + 0.5) * road.laneHeight;
-            }
-            
-            // 决策逻辑
-            decide(cars, currentTime) {
-                if (currentTime - this.lastDecision < this.reactionTime) return;
-                this.lastDecision = currentTime;
-                
-                // 找前车
-                const frontCar = this.findFrontCar(cars);
-                const frontDist = frontCar ? frontCar.y - this.y - this.height : Infinity;
-                
-                // 激进司机：前方受阻时尝试变道
-                if (this.styleConfig.overtaking && frontCar && frontDist < this.followDist * 0.6) {
-                    if (Math.random() < this.styleConfig.laneChangeProb * 5) {
-                        this.tryChangeLane(cars, 'left');
-                    }
-                }
-                
-                // 正常变道需求
-                if (!this.changingLane && Math.random() < this.styleConfig.laneChangeProb) {
-                    const randomLane = Math.random() < 0.5 ? 'left' : 'right';
-                    this.tryChangeLane(cars, randomLane);
-                }
-            }
-            
-            // 找前车
-            findFrontCar(cars) {
-                let closest = null;
-                let closestDist = Infinity;
-                
-                for (let other of cars) {
-                    if (other.id === this.id) continue;
-                    if (other.lane !== this.lane && (!other.changingLane || other.targetLane !== this.lane)) continue;
-                    
-                    if (other.y > this.y) {
-                        let dist = other.y - this.y - this.height;
-                        if (dist < closestDist) {
-                            closestDist = dist;
-                            closest = other;
-                        }
-                    }
-                }
-                return closest;
-            }
-            
-            // 找相邻车道
-            findAdjacentLane(laneDir) {
-                const targetLane = this.lane + (laneDir === 'left' ? -1 : 1);
-                if (targetLane < 0 || targetLane >= road.lanes) return null;
-                return targetLane;
-            }
-            
-            // 检查变道是否安全
-            canChangeLane(cars, targetLane) {
-                const targetY = this.y;
-                const safetyMargin = this.height * 2;
-                
-                for (let other of cars) {
-                    if (other.id === this.id) continue;
-                    if (other.lane !== targetLane && (!other.changingLane || other.targetLane !== targetLane)) continue;
-                    
-                    // 检查目标位置是否有车
-                    if (Math.abs(other.y - targetY) < safetyMargin) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            
-            // 尝试变道
-            tryChangeLane(cars, direction) {
-                const targetLane = this.findAdjacentLane(direction);
-                if (targetLane === null) return;
-                
-                if (this.canChangeLane(cars, targetLane)) {
-                    this.changingLane = true;
-                    this.targetLane = targetLane;
-                    this.laneChangeProgress = 0;
-                    this.laneChangeSpeed = 0.02 + Math.random() * 0.02;
-                }
-            }
-            
-            // 更新状态
-            update(cars, speedLimit) {
-                // 变道逻辑
-                if (this.changingLane) {
-                    this.laneChangeProgress += this.laneChangeSpeed;
-                    
-                    if (this.laneChangeProgress >= 1) {
-                        this.lane = this.targetLane;
-                        this.changingLane = false;
-                        this.laneChangeProgress = 0;
-                        this.laneChanges++;
-                    }
-                }
-                
-                // 速度调整
-                const frontCar = this.findFrontCar(cars);
-                const frontDist = frontCar ? frontCar.y - this.y - this.height : Infinity;
-                
-                const effectiveMaxSpeed = Math.min(this.targetSpeed, speedLimit, this.styleConfig.maxSpeed);
-                
-                if (frontCar && frontDist < this.followDist) {
-                    // 前方有车，跟随前车速度
-                    const targetFollowSpeed = frontCar.speed * 0.9;
-                    this.speed += (targetFollowSpeed - this.speed) * 0.1;
-                    this.braking = true;
-                    this.accelerating = false;
-                    
-                    // 距离太近时急刹车
-                    if (frontDist < this.followDist * 0.3) {
-                        this.speed *= 0.9;
-                    }
-                } else {
-                    // 加速到目标速度
-                    if (this.speed < effectiveMaxSpeed) {
-                        this.speed += (effectiveMaxSpeed - this.speed) * 0.05;
-                        this.accelerating = true;
-                    } else {
-                        this.accelerating = false;
-                    }
-                    this.braking = false;
-                }
-                
-                // 变道时减速
-                if (this.changingLane) {
-                    this.speed *= 0.98;
-                }
-                
-                // 移动 (垂直向下)
-                this.y += this.speed;
-                this.totalDistance += this.speed;
-                
-                // 循环
-                if (this.y > road.y + road.height) {
-                    this.y = road.y - this.height;
-                    // 重新随机变道
-                    if (Math.random() < 0.3) {
-                        const dir = Math.random() < 0.5 ? 'left' : 'right';
-                        const target = this.findAdjacentLane(dir);
-                        if (target !== null) {
-                            this.changingLane = true;
-                            this.targetLane = target;
-                            this.laneChangeProgress = 0;
-                        }
-                    }
-                }
-                
-                // 超车计数
-                if (frontCar && this.y > frontCar.y && this.y - frontCar.y < this.height) {
-                    // 刚超过前车
-                }
-            }
-            
-            // 绘制
-            draw() {
-                ctx.save();
-                
-                // 计算实际x位置
-                let drawX;
-                if (this.changingLane) {
-                    const startX = this.getLaneX(this.lane);
-                    const endX = this.getLaneX(this.targetLane);
-                    drawX = startX + (endX - startX) * this.laneChangeProgress;
-                } else {
-                    drawX = this.getLaneX(this.lane);
-                }
-                
-                drawX -= this.width / 2;
-                
-                // 变道时稍微倾斜
-                if (this.changingLane) {
-                    const tilt = (this.targetLane - this.lane) * 0.1;
-                    ctx.translate(drawX + this.width/2, this.y + this.height/2);
-                    ctx.rotate(tilt);
-                    ctx.translate(-(drawX + this.width/2), -(this.y + this.height/2));
-                }
-                
-                // 车身阴影
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 10;
-                ctx.shadowOffsetY = 5;
-                
-                // 车身
-                ctx.fillStyle = this.styleConfig.color;
-                ctx.beginPath();
-                ctx.roundRect(drawX, this.y, this.width, this.height, 5);
-                ctx.fill();
-                
-                ctx.shadowBlur = 0;
-                ctx.shadowOffsetY = 0;
-                
-                // 车窗
-                ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                ctx.fillRect(drawX + 3, this.y + 5, this.width - 6, 12);
-                
-                // 尾灯
-                if (this.braking) {
-                    ctx.fillStyle = '#ff0000';
-                    ctx.shadowColor = '#ff0000';
-                    ctx.shadowBlur = 15;
-                } else {
-                    ctx.fillStyle = '#880000';
-                    ctx.shadowBlur = 0;
-                }
-                ctx.fillRect(drawX + 2, this.y + this.height - 4, 4, 3);
-                ctx.fillRect(drawX + this.width - 6, this.y + this.height - 4, 4, 3);
-                
-                // 头灯
-                ctx.fillStyle = '#ffff00';
-                ctx.shadowColor = '#ffff00';
-                ctx.shadowBlur = this.accelerating ? 10 : 5;
-                ctx.fillRect(drawX + 2, this.y + 1, 4, 3);
-                ctx.fillRect(drawX + this.width - 6, this.y + 1, 4, 3);
-                
-                // ID标签
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 10px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(this.id, drawX + this.width/2, this.y + this.height/2 + 4);
-                
-                ctx.restore();
-            }
-        }
-
-        // 全局变量
-        let cars = [];
-        let selectedCarId = null;
-        let isRunning = false;
-        let animationId = null;
-        let totalLaneChanges = 0;
-        let lastTime = 0;
-
-        // 初始化
-        function initCars() {
-            cars = [];
-            const count = parseInt(document.getElementById('carCount').value);
-            
-            const styles = ['slow', 'normal', 'aggressive'];
-            const styleWeights = [0.2, 0.6, 0.2]; // 20%保守, 60%正常, 20%激进
-            
-            for (let i = 0; i < count; i++) {
-                const lane = Math.floor(Math.random() * road.lanes);
-                const y = road.y + Math.random() * road.height;
-                
-                // 根据权重随机选择风格
-                const rand = Math.random();
-                let style;
-                if (rand < styleWeights[0]) style = styles[0];
-                else if (rand < styleWeights[0] + styleWeights[1]) style = styles[1];
-                else style = styles[2];
-                
-                cars.push(new Car(i + 1, y, lane, style));
-            }
-            
-            totalLaneChanges = 0;
-            updateCarList();
-        }
-
-        // 绘制道路
-        function drawRoad() {
-            // 路面
-            ctx.fillStyle = '#2d3436';
-            ctx.fillRect(road.x, road.y, road.width, road.height);
-            
-            // 车道线
-            ctx.strokeStyle = '#fff';
-            ctx.setLineDash([30, 20]);
-            ctx.lineWidth = 2;
-            
-            for (let i = 1; i < road.lanes; i++) {
-                const y = road.y + i * road.laneHeight;
-                ctx.beginPath();
-                ctx.moveTo(road.x, y);
-                ctx.lineTo(road.x + road.width, y);
-                ctx.stroke();
-            }
-            
-            ctx.setLineDash([]);
-            
-            // 路边
-            ctx.strokeStyle = '#f39c12';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(road.x, road.y);
-            ctx.lineTo(road.x + road.width, road.y);
-            ctx.moveTo(road.x, road.y + road.height);
-            ctx.lineTo(road.x + road.width, road.y + road.height);
-            ctx.stroke();
-            
-            // 车道编号
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.font = '12px Arial';
-            for (let i = 0; i < road.lanes; i++) {
-                const y = road.y + (i + 0.5) * road.laneHeight;
-                ctx.fillText(`Lane ${i + 1}`, road.x + road.width + 10, y + 4);
-            }
-        }
-
-        // 更新统计
-        function updateStats() {
-            let totalSpeed = 0;
-            let stopped = 0;
-            
-            for (let car of cars) {
-                totalSpeed += car.speed;
-                if (car.speed < 1) stopped++;
-            }
-            
-            const avgSpeed = cars.length > 0 ? Math.round(totalSpeed / cars.length * 3.6) : 0;
-            const jamLevel = cars.length > 0 ? Math.round((stopped / cars.length) * 100) : 0;
-            
-            document.getElementById('avgSpeed').textContent = avgSpeed;
-            document.getElementById('jamLevel').textContent = jamLevel + '%';
-            document.getElementById('laneChanges').textContent = totalLaneChanges;
-            document.getElementById('overtakes').textContent = Math.floor(totalLaneChanges * 0.7);
-            
-            // 更新选中车辆信息
-            if (selectedCarId !== null) {
-                const car = cars.find(c => c.id === selectedCarId);
-                if (car) {
-                    document.getElementById('carSpeed').textContent = Math.round(car.speed * 3.6);
-                    document.getElementById('carLane').textContent = car.lane + 1;
-                }
-            }
-        }
-
-        // 更新车辆列表
-        function updateCarList() {
-            const listEl = document.getElementById('carList');
-            listEl.innerHTML = '';
-            
-            for (let car of cars) {
-                const item = document.createElement('div');
-                item.className = 'car-item' + (car.id === selectedCarId ? ' selected' : '');
-                item.innerHTML = `
-                    <div class="car-icon" style="background: ${car.styleConfig.color};"></div>
-                    <div class="car-info">
-                        <div>车辆 #${car.id}</div>
-                        <div style="color: #888;">${Math.round(car.speed * 3.6)} km/h</div>
-                    </div>
-                    <span class="car-style style-${car.style}">${car.styleConfig.name}</span>
-                `;
-                item.onclick = () => selectCar(car.id);
-                listEl.appendChild(item);
-            }
-        }
-
-        // 选择车辆
-        function selectCar(id) {
-            selectedCarId = id;
-            const car = cars.find(c => c.id === id);
-            
-            if (car) {
-                document.getElementById('selectedPanel').classList.add('active');
-                document.getElementById('targetSpeed').value = car.targetSpeed;
-                document.getElementById('targetSpeedVal').textContent = Math.round(car.targetSpeed);
-                document.getElementById('followDist').value = car.followDist;
-                document.getElementById('followDistVal').textContent = Math.round(car.followDist);
-                
-                // 更新风格按钮
-                document.querySelectorAll('.style-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.style === car.style);
-                });
-            }
-            
-            updateCarList();
-        }
-
-        // 动画循环
-        function animate(currentTime) {
-            if (!lastTime) lastTime = currentTime;
-            const deltaTime = (currentTime - lastTime) / 1000;
-            lastTime = currentTime;
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawRoad();
-            
-            // 更新和绘制
-            const speedLimit = parseInt(document.getElementById('speedLimit').value) / 3.6;
-            
-            for (let car of cars) {
-                if (isRunning) {
-                    // AI决策
-                    if (car.id === selectedCarId) {
-                        // 选中的车辆使用手动控制的速度
-                    } else {
-                        car.decide(cars, currentTime / 1000);
-                    }
-                    car.update(cars, speedLimit);
-                }
-                car.draw();
-            }
-            
-            // 统计变道次数
-            totalLaneChanges = cars.reduce((sum, car) => sum + car.laneChanges, 0);
-            
-            updateStats();
-            
-            if (selectedCarId && isRunning) {
-                updateCarList();
-            }
-            
-            animationId = requestAnimationFrame(animate);
-        }
-
-        // 事件监听
-        document.getElementById('carCount').addEventListener('input', function() {
-            document.getElementById('carCountVal').textContent = this.value;
-            if (!isRunning) initCars();
-        });
-        
-        document.getElementById('speedLimit').addEventListener('input', function() {
-            document.getElementById('speedLimitVal').textContent = this.value;
-        });
-        
-        document.getElementById('targetSpeed').addEventListener('input', function() {
-            document.getElementById('targetSpeedVal').textContent = this.value;
-            const car = cars.find(c => c.id === selectedCarId);
-            if (car) car.targetSpeed = parseInt(this.value);
-        });
-        
-        document.getElementById('followDist').addEventListener('input', function() {
-            document.getElementById('followDistVal').textContent = this.value;
-            const car = cars.find(c => c.id === selectedCarId);
-            if (car) car.followDist = parseInt(this.value);
-        });
-        
-        document.querySelectorAll('.style-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const style = this.dataset.style;
-                const car = cars.find(c => c.id === selectedCarId);
-                if (car) {
-                    car.style = style;
-                    car.styleConfig = DRIVING_STYLES[style];
-                    car.followDist = car.styleConfig.minFollowDist + Math.random() * (car.styleConfig.maxFollowDist - car.styleConfig.minFollowDist);
-                    car.targetSpeed = car.styleConfig.maxSpeed * 0.8;
-                    document.getElementById('followDist').value = car.followDist;
-                    document.getElementById('followDistVal').textContent = Math.round(car.followDist);
-                    document.getElementById('targetSpeed').value = car.targetSpeed;
-                    document.getElementById('targetSpeedVal').textContent = Math.round(car.targetSpeed);
-                }
-                document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                updateCarList();
-            });
-        });
-        
-        document.getElementById('startBtn').addEventListener('click', function() {
-            isRunning = true;
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('stopBtn').disabled = false;
-        });
-        
-        document.getElementById('stopBtn').addEventListener('click', function() {
-            isRunning = false;
-            document.getElementById('startBtn').disabled = false;
-            document.getElementById('stopBtn').disabled = true;
-        });
-        
-        document.getElementById('resetBtn').addEventListener('click', function() {
-            initCars();
-            selectedCarId = null;
-            document.getElementById('selectedPanel').classList.remove('active');
-        });
-
-        // 启动
-        initCars();
-        animate(0);
-    </script>
+<div class="h"><div class="hc"><div class="l"><div class="li">🚗</div><div class="lt"><div class="ttl">微观交通流仿真系统</div><div class="sub">Microscopic Traffic Simulation</div></div></div><div class="rt">模型：<b>IDM + MOBIL</b></div></div></div>
+<div class="m">
+<div class="s1"><div class="cw"><canvas id="c" width="800" height="550"></canvas>
+<div class="hud"><div class="hu"><div class="hl">平均速度</div><div class="hv" id="avgS">0 km/h</div></div><div class="hu"><div class="hl">密度</div><div class="hv" id="den">0</div></div><div class="hu"><div class="hl">拥堵</div><div class="hv" id="jam">0%</div></div></div>
+<div class="tm">⏱ <span id="tm">00:00</span></div></div>
+<div class="cb"><div class="bg"><button class="b bp" id="sB">▶</button><button class="b bs" id="pB" disabled>⏸</button><button class="b br" id="rB">↺</button></div><div class="lg"><div class="li"><div class="ld" style="background:#58a6ff"></div>保守</div><div class="li"><div class="ld" style="background:#3fb950"></div>正常</div><div class="li"><div class="ld" style="background:#f85149"></div>激进</div></div></div></div>
+<div class="s2">
+<div class="p"><div class="ph">⚙️ 参数</div><div class="pc"><div class="cg"><div class="cl"><span>车辆数</span><span class="cv" id="ccV">20</span></div><input type="range" id="cc" min="5" max="50" value="20"></div><div class="cg"><div class="cl"><span>限速 km/h</span><span class="cv" id="slV">120</span></div><input type="range" id="sl" min="60" max="180" value="120"></div><div class="cg"><div class="cl"><span>视距</span><span class="cv" id="zsV">100%</span></div><input type="range" id="zs" min="60" max="140" value="100"></div></div></div>
+<div class="p sp" id="selP"><div class="ph">🚙 选中车辆</div><div class="pc"><div class="sg"><div class="sb"><div class="sv" id="vSpd">0</div><div class="sl">km/h</div></div><div class="sb"><div class="sv" id="vAcc">0</div><div class="sl">m/s²</div></div></div><div class="cg" style="margin-top:10px"><div class="cl"><span>期望速度</span><span class="cv" id="tsV">110</span></div><input type="range" id="ts" min="40" max="200" value="110"></div><div class="cg"><div class="cl"><span>安全车距</span><span class="cv" id="fdV">50</span></div><input type="range" id="fd" min="20" max="100" value="50"></div><div class="cl">风格</div><div class="st"><button class="stb slow" data-st="slow">🐢</button><button class="stb normal on" data-st="normal">🚗</button><button class="stb aggressive" data-st="aggressive">🏎️</button></div></div></div>
+<div class="p"><div class="ph">📊 统计</div><div class="pc"><div class="sg"><div class="sb"><div class="sv" id="tv">0</div><div class="sl">车辆</div></div><div class="sb"><div class="sv" id="fr">0</div><div class="sl">流量</div></div><div class="sb"><div class="sv" id="lc">0</div><div class="sl">变道</div></div><div class="sb"><div class="sv" id="eb">0</div><div class="sl">急刹</div></div><div class="sb"><div class="sv" id="el">0</div><div class="sl">能耗</div></div></div></div></div>
+<div class="p"><div class="ph">🚗 车辆</div><div class="pc" style="padding:8px"><div class="vs" id="vl"></div></div></div>
+<div class="p"><div class="ph">📖 模型</div><div class="pc"><div class="inf"><p><strong>IDM</strong> 智能驾驶员模型</p><p><strong>MOBIL</strong> 变道决策</p><p style="color:var(--c4)">💡 滚动道路查看前后车</p><p style="color:var(--c4)">💡 点击控制车辆</p></div></div></div>
+</div></div>
+<script>
+const IP={slow:{v0:70,T:2,s0:4,a:.5,b:1.5,c:'#58a6ff',n:'保守',p:.002},normal:{v0:110,T:1.5,s0:2.5,a:.8,b:2,c:'#3fb950',n:'正常',p:.006},aggressive:{v0:160,T:.8,s0:1.2,a:1.3,b:3.5,c:'#f85149',n:'激进',p:.02}};
+const C=document.getElementById('c'),X=C.getContext('2d');
+const CWEl=document.querySelector('.cw');
+const R={L:4,W:19.6,Rl:1000,Sc:4,Vl:20.5,Vw:9};
+let Z=1;
+const G={g:9.81,mu:.85};
+let CW=800,CH=550;
+const rd={l:()=>Math.max(70,(CW-R.L*R.W*R.Sc)/2),t:()=>35,w:()=>R.L*R.W*R.Sc,h:()=>R.Rl*R.Sc};
+function lx(l){return rd.l()+(l+.5)*R.W*R.Sc}
+class Veh{constructor(i,po,l,st='normal'){this.i=i;this.po=po;this.l=l;this.st=st;this.pr={...IP[st]};this.sp=this.pr.v0/3.6*(.4+Math.random()*.4);this.ac=0;this.chg=0;this.tL=l;this.br=0;this.lc=0;this.em=0;this.le=0;this.out=0}
+ap(fv,sl){const v=this.sp,v0=Math.min(this.pr.v0/3.6,sl),a=this.pr.a,b=this.pr.b,s0=this.pr.s0,T=this.pr.T;
+ let s=fv?(fv.po-this.po-R.Vl)*R.Sc:Infinity;
+ const fa=a*(1-Math.pow(v/v0,4)),dv=v-(fv?fv.sp:v),sS=s0+Math.max(0,v*T+v*dv/(2*Math.sqrt(a*b))),ba=-a*Math.pow(sS/Math.max(s,s0),2);
+ this.ac=fa+ba;
+ const amax=G.mu*G.g;this.ac=Math.max(-amax,Math.min(this.ac,amax));
+ if(s<s0*.4){this.em++;this.br=1}else this.br=this.ac<-.8;
+ this.sp=Math.max(0,Math.min(this.sp+this.ac*.05,v0))}
+ff(vs){let cl=null,cd=Infinity;
+for(let o of vs){if(o.i===this.i)continue;if(o.l!==this.l&&(!o.chg||o.tL!==this.l))continue;
+if(o.po>this.po){const d=o.po-this.po-R.Vl;if(d<cd){cd=d;cl=o}}}return cl}
+cCL(vs,tl){const sd=Math.max(this.sp*1.2,12);
+for(let o of vs){if(o.i===this.i)continue;if(o.l!==tl&&(!o.chg||o.tL!==tl))continue;if(Math.abs(o.po-this.po)<sd)return 0}return 1}
+dl(vs){if(Math.random()>this.pr.p)return;const fv=this.ff(vs);if(!fv)return;const gap=(fv.po-this.po-R.Vl)*R.Sc;if(gap<this.pr.s0*2){for(let d of[-1,1]){const tl=this.l+d;if(tl<0||tl>=R.L)continue;if(this.cCL(vs,tl)){this.chg=1;this.tL=tl;this.lc++;return}}}}
+up(vs,sl){if(this.chg){this.chg+=.12;this.ac=-.4;if(this.chg>=1){this.l=this.tL;this.chg=0}}else{this.ap(this.ff(vs),sl);this.dl(vs)}
+ this.le=this.ac*R.Vl*this.sp;
+ this.po+=this.sp*.05;if(this.po>R.Rl)this.out=1}
+dr(){let dx=lx(this.l);if(this.chg)dx=lx(this.l)+(lx(this.tL)-lx(this.l))*this.chg;
+ const dy=rd.t()+this.po*R.Sc,w=R.Vw*R.Sc,h=R.Vl*R.Sc;
+ X.save();
+ X.shadowColor='rgba(0,0,0,.5)';X.shadowBlur=14;X.shadowOffsetY=7;
+ const body=X.createLinearGradient(dx-w/2,dy-h/2,dx+w/2,dy+h/2);body.addColorStop(0,'rgba(255,255,255,.12)');body.addColorStop(.2,this.pr.c);body.addColorStop(1,'rgba(0,0,0,.28)');
+ X.fillStyle=body;X.beginPath();rR(X,dx-w/2,dy-h/2,w,h,8);X.fill();
+ X.shadowBlur=0;
+ X.fillStyle='rgba(10,14,20,.8)';X.fillRect(dx-w/2+.08*w,dy-h/2+.08*h,w*.84,h*.28);
+ X.fillStyle='rgba(255,255,255,.2)';X.fillRect(dx-w/2+.12*w,dy-h/2+.12*h,w*.26,h*.12);
+ X.fillStyle='rgba(255,255,255,.14)';X.fillRect(dx-w/2+.62*w,dy-h/2+.12*h,w*.18,h*.12);
+ const hi=X.createLinearGradient(dx-w/2,dy-h/2,dx+w/2,dy-h/2);hi.addColorStop(0,'rgba(255,255,255,.18)');hi.addColorStop(.5,'rgba(255,255,255,0)');hi.addColorStop(1,'rgba(0,0,0,.2)');X.fillStyle=hi;X.fillRect(dx-w/2,dy-h/2,w,h*.18);
+ X.fillStyle=this.br?'#ff3b30':'#5b0b0b';if(this.br){X.shadowColor='#ff3b30';X.shadowBlur=10}X.fillRect(dx-w/2+.06*w,dy+h/2-.1*h,.18*w,.06*h);X.fillRect(dx+w/2-.24*w,dy+h/2-.1*h,.18*w,.06*h);X.shadowBlur=0;
+ X.fillStyle='#1a1a1a';const tw=.14*w,th=.5*h;X.fillRect(dx-w/2-tw*.06,dy-h/2+.12*h,tw,th);X.fillRect(dx+w/2-tw*.94,dy-h/2+.12*h,tw,th);X.fillRect(dx-w/2-tw*.06,dy+h/2-th-.12*h,tw,th);X.fillRect(dx+w/2-tw*.94,dy+h/2-th-.12*h,tw,th);
+ X.fillStyle='rgba(255,255,255,.1)';X.fillRect(dx-w/2+.1*w,dy-h/2+.4*h,w*.8,h*.04);
+ if(this.i===sid){X.strokeStyle='rgba(14,165,233,.9)';X.lineWidth=2.2;X.shadowColor='rgba(14,165,233,.8)';X.shadowBlur=12;X.strokeRect(dx-w/2-2,dy-h/2-2,w+4,h+4);X.shadowBlur=0}
+ X.fillStyle='rgba(0,0,0,.45)';X.fillRect(dx-w/2+.34*w,dy-h/2+.36*h,w*.32,h*.22);
+ X.fillStyle='rgba(255,255,255,.92)';X.font='bold 12px "JetBrains Mono",monospace';X.textAlign='center';X.textBaseline='middle';X.fillText(this.i,dx,dy-h*.02);
+ X.restore()}}
+function rR(x,y,w,h,r){x.moveTo(x+r,y);x.lineTo(x+w-r,y);x.quadraticCurveTo(x+w,y,x+w,y+r);x.lineTo(x+w,y+h-r);x.quadraticCurveTo(x+w,y+h,x+w-r,y+h);x.lineTo(x+r,y+h);x.quadraticCurveTo(x,y+h,x,y+h-r);x.lineTo(x,y+r);x.quadraticCurveTo(x,y,x+r,y)}
+let vs=[],sid=null,run=0,sti=0;
+let vmap=new Map();
+function fit(){const s=Math.min(C.clientWidth/C.width,C.clientHeight/C.height);R.Sc=Math.max(3.6,s*3.9)*Z;C.width=C.clientWidth;CW=C.width;CH=R.Rl*R.Sc;C.height=CH;C.style.height=CH+'px'}
+function init(){fit();vs=[];for(let i=0;i<parseInt(document.getElementById('cc').value);i++){const l=Math.floor(Math.random()*R.L),po=Math.random()*R.Rl,st=Math.random()<.25?'slow':Math.random()<.85?'normal':'aggressive';vs.push(new Veh(i+1,po,l,st))}buildList();upL()}
+function drRd(){const x=rd.l(),y=rd.t(),w=rd.w(),h=rd.h();
+ const bg=X.createLinearGradient(x,y,x,y+h);bg.addColorStop(0,'#141b24');bg.addColorStop(.5,'#121923');bg.addColorStop(1,'#0f151d');X.fillStyle=bg;X.fillRect(x,y,w,h);
+ X.fillStyle='rgba(255,255,255,.04)';for(let i=0;i<10;i++){X.fillRect(x,y+i*h/10,w,1)}
+ X.strokeStyle='rgba(251,191,36,.85)';X.setLineDash([18,12]);X.lineWidth=1.5;for(let i=1;i<R.L;i++){X.beginPath();X.moveTo(x+i*R.W*R.Sc,y);X.lineTo(x+i*R.W*R.Sc,y+h);X.stroke()}
+ X.setLineDash([]);X.strokeStyle='rgba(249,115,22,.9)';X.lineWidth=2.5;X.beginPath();X.moveTo(x,y);X.lineTo(x,y+h);X.moveTo(x+w,y);X.lineTo(x+w,y+h);X.stroke();
+ X.fillStyle='rgba(255,255,255,.18)';X.font='9px monospace';for(let i=0;i<R.L;i++){X.fillText('L'+(i+1),x-20,y+(i+.5)*R.W*R.Sc+3)}}
+function upSt(){let ts=0,sp=0,le=0;for(let v of vs){ts+=v.sp;if(v.sp<1)sp++;le+=v.le}
+ const avs=vs.length?Math.round(ts/vs.length*3.6):0,den=vs.length?Math.round(vs.length/(R.Rl/1000)/(R.L*R.W)):0,jam=vs.length?Math.round(sp/vs.length*100):0,loss=Math.max(0,Math.round(le/vs.length/1000));
+const avEl=document.getElementById('avgS');avEl.textContent=avs+' km/h';avEl.className='hv'+(jam>50?' d':jam>30?' w':'');
+document.getElementById('den').textContent=den;const jamEl=document.getElementById('jam');jamEl.textContent=jam+'%';jamEl.className='hv'+(jam>50?' d':jam>30?' w':'');
+ document.getElementById('tv').textContent=vs.length;document.getElementById('fr').textContent=Math.round(avs*den);document.getElementById('lc').textContent=vs.reduce((a,v)=>a+v.lc,0);document.getElementById('eb').textContent=vs.reduce((a,v)=>a+v.em,0);document.getElementById('el').textContent=loss;
+if(sid){const v=vs.find(v=>v.i===sid);if(v){document.getElementById('vSpd').textContent=Math.round(v.sp*3.6);document.getElementById('vAcc').textContent=v.ac.toFixed(1)}}
+document.getElementById('tm').textContent=Math.floor(sti/60).toString().padStart(2,'0')+':'+(sti%60).toFixed(0).padStart(2,'0')}
+function buildList(){const l=document.getElementById('vl');l.innerHTML='';vmap.clear();for(let v of vs){const c=document.createElement('div');c.className='vc';c.dataset.id=v.i;c.innerHTML='<div class="vi" style="background:'+v.pr.c+'"></div><div class="vif"><div class="vid">#'+v.i+'</div><div class="vsp">'+Math.round(v.sp*3.6)+' km/h</div></div>';vmap.set(v.i,c);l.appendChild(c)}if(!l.dataset.bound){l.onclick=e=>{const it=e.target.closest('.vc');if(it)sel(parseInt(it.dataset.id))};l.dataset.bound='1'}}
+function upL(){for(let v of vs){const c=vmap.get(v.i);if(!c)continue;c.classList.toggle('sel',v.i===sid);const sp=c.querySelector('.vsp');if(sp)sp.textContent=Math.round(v.sp*3.6)+' km/h'}}
+function follow(s){if(!sid||!CWEl)return;const v=vs.find(v=>v.i===sid);if(!v)return;const dy=rd.t()+v.po*R.Sc;const t=dy-CWEl.clientHeight/2;const max=C.height-CWEl.clientHeight;const top=Math.max(0,Math.min(t,Math.max(0,max)));if(s)CWEl.scrollTo({top,behavior:'smooth'});else CWEl.scrollTop=top}
+function sel(id){sid=id;const v=vs.find(v=>v.i===id);if(v){document.getElementById('selP').classList.add('on');document.getElementById('ts').value=v.pr.v0;document.getElementById('tsV').textContent=v.pr.v0;document.getElementById('fd').value=v.pr.s0*15;document.getElementById('fdV').textContent=Math.round(v.pr.s0*15);document.querySelectorAll('.stb').forEach(b=>b.classList.toggle('on',b.dataset.st===v.style))}upL();const it=document.querySelector('.vc.sel');if(it)it.scrollIntoView({block:'nearest'});follow(1)}
+function an(){X.clearRect(0,0,C.width,C.height);drRd();const sl=parseInt(document.getElementById('sl').value)/3.6;
+ if(run){for(let v of vs){v.up(vs,sl)}sti+=.05}
+ if(run){const nv=vs.filter(v=>!v.out);if(nv.length!==vs.length){vs=nv;buildList();if(sid&&!vs.find(v=>v.i===sid))sid=null}}
+ const vsS=[...vs].sort((a,b)=>a.po-b.po);for(let v of vsS){v.dr()}
+ upSt();if(run&&sid){upL();follow()}requestAnimationFrame(an)}
+document.getElementById('cc').oninput=function(){document.getElementById('ccV').textContent=this.value;if(!run)init()};
+document.getElementById('sl').oninput=function(){document.getElementById('slV').textContent=this.value};
+document.getElementById('zs').oninput=function(){document.getElementById('zsV').textContent=this.value+'%';Z=parseInt(this.value)/100;fit()};
+document.getElementById('ts').oninput=function(){document.getElementById('tsV').textContent=this.value;if(sid){const v=vs.find(v=>v.i===sid);if(v)v.pr.v0=parseInt(this.value)}};
+document.getElementById('fd').oninput=function(){document.getElementById('fdV').textContent=this.value;if(sid){const v=vs.find(v=>v.i===sid);if(v)v.pr.s0=parseInt(this.value)/15}};
+document.querySelectorAll('.stb').forEach(b=>{b.onclick=function(){if(sid){const v=vs.find(v=>v.i===sid);if(v){v.st=this.dataset.st;v.pr={...IP[this.dataset.st]};v.pr.v0=Math.round(v.pr.v0*.9);v.pr.s0=v.pr.s0*1.2}}document.querySelectorAll('.stb').forEach(bb=>bb.classList.remove('on'));this.classList.add('on');upL()}});
+document.getElementById('sB').onclick=function(){run=1;document.getElementById('sB').disabled=1;document.getElementById('pB').disabled=0};
+document.getElementById('pB').onclick=function(){run=0;document.getElementById('sB').disabled=0;document.getElementById('pB').disabled=1};
+document.getElementById('rB').onclick=function(){init();run=0;document.getElementById('sB').disabled=0;document.getElementById('pB').disabled=1;sti=0};
+window.addEventListener('resize',()=>{fit()});
+fit();init();an();
+</script>
 </body>
 </html>
